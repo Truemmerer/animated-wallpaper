@@ -20,11 +20,34 @@ namespace Wallpaper {
 
     BackgroundWindow[] backgroundWindows;
 
-    public static void main (string [] args) {
 
-        if(args[1] == "--help" || args[1] == "-h" || args.length != 2) {
-            print("Usage:\n\tanimated-wallpaper [FILE]");
-            return;
+    public static void main (string [] args) {
+        int monitor = -1;
+        string fileName = "";
+
+        if (args.length < 2)
+            showHelp();
+
+        for (int i = 1; i < args.length; i++) {
+            if (args[i][0] == '-' && args[i].length == 2) {
+                switch (args[i][1])
+                {
+                    case 'm':
+                        if (args.length > i){
+                            monitor = int.parse(args[i + 1]);
+                            i++;
+                        }
+                        break;
+                    case 'h':
+                    default:
+                        showHelp();
+                        break;
+                }
+            }
+        
+            if (i == args.length - 1)
+                fileName = args[i];
+
         }
 
         GtkClutter.init (ref args);
@@ -35,9 +58,12 @@ namespace Wallpaper {
         int monitorCount = screen.get_n_monitors();
 
         backgroundWindows = new BackgroundWindow[monitorCount];
-        string fileName = args[1];
-        for (int i = 0; i < monitorCount; ++i)
-            backgroundWindows[i] = new BackgroundWindow(i, fileName);
+        if(monitor == -1)
+            for (int i = 0; i < monitorCount; ++i)
+                backgroundWindows[i] = new BackgroundWindow(i, fileName);
+        else
+            backgroundWindows[monitor] = new BackgroundWindow(monitor, fileName);
+
 
         var mainSettings = Gtk.Settings.get_default ();
         mainSettings.set("gtk-xft-antialias", 1, null);
@@ -48,5 +74,12 @@ namespace Wallpaper {
             backgroundWindows[i].show_all();
 
         Clutter.main();
+    }
+
+    public static void showHelp() {
+        print("Usage:\n\tanimated-wallpaper options [FILE]\n");
+        print("Options:\n -m\tSelect monitor. (-1 = all monitors.) Default: -1\n");
+
+        Process.exit(0);
     }
 }

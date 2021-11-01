@@ -1,1 +1,8 @@
 result
+CMakeFiles
+**.c
+**.cmake
+CMakeCache.txt
+install_manifest.txt
+Makefile
+animated-wallpaper

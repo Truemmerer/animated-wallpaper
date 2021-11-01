@@ -1,27 +1,44 @@
 
 # What is this?
 
+This is a fork of [Ninlives/animated-wallpaper](https://github.com/Ninlives/animated-wallpaper) with the option to select which monitor to display the video on.
+
 I want to have animated wallpaper on Gnome3, but there is no official support and I didn't find a good solution. [Komorebi](https://github.com/cheesecakeufo/komorebi) can create a dynamic desktop using a video but its functionality is bloated to me, so I recreate some of its core function into this small utility.
+
+
 
 # Usage
 
 ```shell
-animated-wallpaper [FILE]
+Usage:
+	animated-wallpaper options [FILE]
+Options:
+ -m	Select monitor. (-1 = all monitors.) Default: -1
 ```
 
 Play and loop the video `FILE` on your desktop.
 
-# Note
-
-- Will increase your CPU usage and lower your battery life
-
 # Build && Install
+
+## Install
+
+```shell
+git clone https://github.com/DanielHands008/animated-wallpaper.git
+cd animated-wallpaper
+cmake .
+make
+make install
+```
 
 ## For Nix Users
 
 ```shell
-nix-env -i -f https://github.com/Ninlives/animated-wallpaper/archive/master.tar.gz
+nix-env -i -f https://github.com/DanielHands008/animated-wallpaper/archive/master.tar.gz
 ```
+
+# Note
+
+- Will increase your CPU usage and lower your battery life
 
 ## Others
 
@@ -37,11 +54,3 @@ These instructions should work but I didn't test it, tell me if you encounter an
 - clutter-gtk
 - clutter-gst
 - gst-libav
-
-### Instructions
-
-```shell
-git clone https://github.com/Ninlives/animated-wallpaper
-cd animated-wallpaper
-cmake . && make && make install
-```
