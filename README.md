@@ -13,8 +13,11 @@ I want to have animated wallpaper on Gnome3, but there is no official support an
 Usage:
 	animated-wallpaper options [FILE]
 Options:
+ -d	Enable debug mode.
  -m	Select monitors. (eg. -n 0,2) Default: all
  -v	Set volume. (eg. -v 0.2) Default: 0
+ -s	Set the static background to a frame from the video. (Requires ffmpeg)
+ -t	Time in the video the static background is taken from. (eg. -t 00:00:05) Default: 00:00:00
 ```
 
 Play and loop the video `FILE` on your desktop.

@@ -17,6 +17,7 @@
 
 using Playable;
 namespace Wallpaper {
+    bool debug = false;
 
     BackgroundWindow[] backgroundWindows;
 
@@ -25,6 +26,8 @@ namespace Wallpaper {
         int[] monitors = new int[0];
         string fileName = "";
         double volume = 0;
+        bool useStaticBackground = false;
+        string ffmpegSeek = "00:00:00";
 
         if (args.length < 2)
             showHelp();
@@ -33,6 +36,9 @@ namespace Wallpaper {
             if (args[i][0] == '-' && args[i].length == 2) {
                 switch (args[i][1])
                 {
+                    case 'd':
+                        debug = true;
+                        break;
                     case 'm':
                         if (args.length > i){
                             if (args[i + 1] == "all")
@@ -47,6 +53,15 @@ namespace Wallpaper {
                     case 'v':
                         if (args.length > i){
                             volume = double.parse(args[i + 1]);
+                            i++;
+                        }
+                        break;
+                    case 's':
+                        useStaticBackground = true;
+                        break;
+                    case 't':
+                        if (args.length > i){
+                            ffmpegSeek = args[i + 1];
                         }
                         break;
                     case 'h':
@@ -56,9 +71,16 @@ namespace Wallpaper {
                 }
             }
         
-            if (i == args.length - 1)
-                fileName = args[i];
-
+            if (i == args.length - 1) {
+                File file = File.new_for_path (args[i]);
+                if (file.query_exists()) {
+                    fileName = args[i];
+                }
+                else {
+                    print("Error: file does not exist.\n");
+                    Process.exit(0);
+                }
+            }
         }
 
         GtkClutter.init (ref args);
@@ -91,14 +113,51 @@ namespace Wallpaper {
         for (int i = 0; i < backgroundWindows.length; ++i)
             backgroundWindows[i].show_all();
 
+        if (useStaticBackground)
+            setStaticBackground(fileName, ffmpegSeek);
+
         Clutter.main();
+
+
+    }
+
+    public static void setStaticBackground(string fileName, string ffmpegSeek) {
+        string ls_stdout;
+        string ls_stderr;
+        int ls_status;
+        try {
+            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 /tmp/static-wallpaper.png";
+            if(debug) print(ffmpegCommand + "\n");
+            Process.spawn_command_line_sync (ffmpegCommand, out ls_stdout, out ls_stderr, out ls_status);
+
+            string setBackgroundCommand = "gsettings set org.gnome.desktop.background picture-uri file:///tmp/static-wallpaper.png";
+            Process.spawn_command_line_sync (setBackgroundCommand, out ls_stdout, out ls_stderr, out ls_status);
+
+            // Output: <File list>
+            if(debug) print ("stdout:\n");
+            // Output: ````
+            if(debug) print (ls_stdout);
+            if(debug) print ("stderr:\n");
+            if(debug) print (ls_stderr);
+            // Output: ``0``
+            if(debug) print ("Status: %d\n", ls_status);
+
+
+
+
+        } catch (SpawnError e) {
+            print ("Error: %s\n", e.message);
+        }
     }
 
     public static void showHelp() {
         print("Usage:\n\tanimated-wallpaper options [FILE]\n");
         print("Options:\n");
+        print(" -d\tEnable debug mode.\n");
         print(" -m\tSelect monitors. (eg. -n 0,2) Default: all\n");
         print(" -v\tSet volume. (eg. -v 0.2) Default: 0\n");
+        print(" -s\tSet the static background to a frame from the video. (Requires ffmpeg)\n");
+        print(" -t\tTime in the video the static background is taken from. (eg. -t 00:00:05) Default: 00:00:00\n");
 
         Process.exit(0);
     }
