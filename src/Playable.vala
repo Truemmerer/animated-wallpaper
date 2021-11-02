@@ -33,7 +33,7 @@ namespace Playable {
 
 		Clutter.Actor wallpaperActor = new Clutter.Actor();
 
-		public BackgroundWindow (int monitorIndex, string fileName) {
+		public BackgroundWindow (int monitorIndex, string fileName, double volume) {
 
 			title = "Desktop";
 
@@ -62,7 +62,7 @@ namespace Playable {
 			wallpaperActor.set_size(screenWidth, screenHeight);
 			wallpaperActor.set_pivot_point (0.5f, 0.5f);
 
-            setVideoWallpaper(fileName);
+            setVideoWallpaper(fileName, volume);
 
 			// Add widgets
 			mainActor.add_child(wallpaperActor);
@@ -86,7 +86,7 @@ namespace Playable {
 		}
 
 
-        void setVideoWallpaper(string fileName) {
+        void setVideoWallpaper(string fileName, double volume) {
 
             ClutterGst.Playback videoPlayback = new ClutterGst.Playback ();
             ClutterGst.Content  videoContent = new ClutterGst.Content();
@@ -98,7 +98,7 @@ namespace Playable {
 
                 if(videoPlayback.progress >= 1.0) {
                     videoPlayback.progress = 0.0;
-					videoPlayback.set_audio_volume(0);
+					videoPlayback.set_audio_volume(volume);
                     videoPlayback.playing = true;
                 }
 
@@ -108,7 +108,7 @@ namespace Playable {
             wallpaperActor.scale_x = 1.00f;   
 
             videoPlayback.set_filename(fileName);
-			videoPlayback.set_audio_volume(0);
+			videoPlayback.set_audio_volume(volume);
             videoPlayback.playing = true;
 
             wallpaperActor.set_content(videoContent);

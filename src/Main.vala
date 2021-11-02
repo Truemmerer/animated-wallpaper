@@ -41,8 +41,12 @@ namespace Wallpaper {
                             monitors.resize(tmp.length);
                             for(int o = 0; o < tmp.length; o++)
                                 monitors[o] = int.parse(tmp[o]);
-                            print("\nmonitors: " + string.join(" ", monitors) + "\n");
                             i++;
+                        }
+                        break;
+                    case 'v':
+                        if (args.length > i){
+                            volume = double.parse(args[i + 1]);
                         }
                         break;
                     case 'h':
@@ -64,13 +68,19 @@ namespace Wallpaper {
         var screen = Gdk.Screen.get_default ();
         int monitorCount = screen.get_n_monitors();
 
-        backgroundWindows = new BackgroundWindow[monitorCount];
-        if(monitors.length == 0)
+        
+        if(monitors.length == 0) {
+            backgroundWindows = new BackgroundWindow[monitorCount];
             for (int i = 0; i < monitorCount; ++i)
-                backgroundWindows[i] = new BackgroundWindow(i, fileName);
-        else
+                backgroundWindows[i] = new BackgroundWindow(i, fileName, volume);
+        }
+
+        else {
+            backgroundWindows = new BackgroundWindow[monitors.length];
             for(int i = 0; i < monitors.length; i++)
-                backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], fileName);
+                backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], fileName, volume);
+        }
+
 
 
         var mainSettings = Gtk.Settings.get_default ();
@@ -78,7 +88,7 @@ namespace Wallpaper {
         mainSettings.set("gtk-xft-rgba" , "none", null);
         mainSettings.set("gtk-xft-hintstyle" , "slight", null);
 
-        for (int i = 0; i < monitorCount; ++i)
+        for (int i = 0; i < backgroundWindows.length; ++i)
             backgroundWindows[i].show_all();
 
         Clutter.main();
@@ -86,7 +96,9 @@ namespace Wallpaper {
 
     public static void showHelp() {
         print("Usage:\n\tanimated-wallpaper options [FILE]\n");
-        print("Options:\n -m\tSelect monitors. (eg. -n 0,2) Default: all\n");
+        print("Options:\n");
+        print(" -m\tSelect monitors. (eg. -n 0,2) Default: all\n");
+        print(" -v\tSet volume. (eg. -v 0.2) Default: 0\n");
 
         Process.exit(0);
     }
