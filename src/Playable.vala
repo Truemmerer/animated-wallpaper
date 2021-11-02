@@ -98,6 +98,7 @@ namespace Playable {
 
                 if(videoPlayback.progress >= 1.0) {
                     videoPlayback.progress = 0.0;
+					videoPlayback.set_audio_volume(0);
                     videoPlayback.playing = true;
                 }
 
@@ -107,6 +108,7 @@ namespace Playable {
             wallpaperActor.scale_x = 1.00f;   
 
             videoPlayback.set_filename(fileName);
+			videoPlayback.set_audio_volume(0);
             videoPlayback.playing = true;
 
             wallpaperActor.set_content(videoContent);
