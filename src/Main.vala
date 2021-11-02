@@ -20,10 +20,11 @@ namespace Wallpaper {
 
     BackgroundWindow[] backgroundWindows;
 
-
     public static void main (string [] args) {
-        int monitor = -1;
+
+        int[] monitors = new int[0];
         string fileName = "";
+        double volume = 0;
 
         if (args.length < 2)
             showHelp();
@@ -34,7 +35,13 @@ namespace Wallpaper {
                 {
                     case 'm':
                         if (args.length > i){
-                            monitor = int.parse(args[i + 1]);
+                            if (args[i + 1] == "all")
+                                break;
+                            string[] tmp = args[i + 1].split(",");
+                            monitors.resize(tmp.length);
+                            for(int o = 0; o < tmp.length; o++)
+                                monitors[o] = int.parse(tmp[o]);
+                            print("\nmonitors: " + string.join(" ", monitors) + "\n");
                             i++;
                         }
                         break;
@@ -58,11 +65,12 @@ namespace Wallpaper {
         int monitorCount = screen.get_n_monitors();
 
         backgroundWindows = new BackgroundWindow[monitorCount];
-        if(monitor == -1)
+        if(monitors.length == 0)
             for (int i = 0; i < monitorCount; ++i)
                 backgroundWindows[i] = new BackgroundWindow(i, fileName);
         else
-            backgroundWindows[monitor] = new BackgroundWindow(monitor, fileName);
+            for(int i = 0; i < monitors.length; i++)
+                backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], fileName);
 
 
         var mainSettings = Gtk.Settings.get_default ();
@@ -78,7 +86,7 @@ namespace Wallpaper {
 
     public static void showHelp() {
         print("Usage:\n\tanimated-wallpaper options [FILE]\n");
-        print("Options:\n -m\tSelect monitor. (-1 = all monitors.) Default: -1\n");
+        print("Options:\n -m\tSelect monitors. (eg. -n 0,2) Default: all\n");
 
         Process.exit(0);
     }

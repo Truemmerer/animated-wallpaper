@@ -11,9 +11,9 @@ I want to have animated wallpaper on Gnome3, but there is no official support an
 
 ```shell
 Usage:
-	animated-wallpaper options [FILE]
+        animated-wallpaper options [FILE]
 Options:
- -m	Select monitor. (-1 = all monitors.) Default: -1
+ -m     Select monitors. (eg. -n 0,2) Default: all
 ```
 
 Play and loop the video `FILE` on your desktop.
