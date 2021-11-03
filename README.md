@@ -1,4 +1,8 @@
 
+This is a fork from https://github.com/DanielHands008/animated-wallpaper.
+This fork is only based on a version that was stable.
+And serves only as a basis for https://github.com/Truemmerer/animated_wallpaper_helper
+
 # What is this?
 
 This is a fork of [Ninlives/animated-wallpaper](https://github.com/Ninlives/animated-wallpaper) with the option to select which monitor to display the video on.
