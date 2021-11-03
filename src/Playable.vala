@@ -85,11 +85,12 @@ namespace Playable {
 
 		}
 
+		ClutterGst.Playback videoPlayback = new ClutterGst.Playback ();
+        ClutterGst.Content  videoContent = new ClutterGst.Content();
 
-        void setVideoWallpaper(string fileName, double volume) {
+        public void setVideoWallpaper(string fileName, double volume) {
 
-            ClutterGst.Playback videoPlayback = new ClutterGst.Playback ();
-            ClutterGst.Content  videoContent = new ClutterGst.Content();
+
             videoPlayback.set_seek_flags (ClutterGst.SeekFlags.ACCURATE);
 
             videoContent.player = videoPlayback;

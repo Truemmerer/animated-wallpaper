@@ -18,6 +18,9 @@
 using Playable;
 namespace Wallpaper {
     bool debug = false;
+    bool randomOrder = false;
+    int currentPos = 0;
+    unowned string playlist = "";
 
     BackgroundWindow[] backgroundWindows;
 
@@ -28,6 +31,7 @@ namespace Wallpaper {
         double volume = 0;
         bool useStaticBackground = false;
         string ffmpegSeek = "00:00:00";
+        int interval = 600000;
 
         if (args.length < 2)
             showHelp();
@@ -64,14 +68,26 @@ namespace Wallpaper {
                             ffmpegSeek = args[i + 1];
                         }
                         break;
+                    case 'p':
+                        if (args.length > i){
+                            playlist = args[i + 1];
+                        }
+                        break;
+                    case 'i':
+                        if (args.length > i){
+                            interval = int.parse(args[i + 1]) * 1000;
+                        }
+                        break;
+                    case 'r':
+                        randomOrder = true;
+                        break;
                     case 'h':
                     default:
                         showHelp();
                         break;
                 }
             }
-        
-            if (i == args.length - 1) {
+            if (i == args.length - 1 && playlist == "") {
                 File file = File.new_for_path (args[i]);
                 if (file.query_exists()) {
                     fileName = args[i];
@@ -83,6 +99,8 @@ namespace Wallpaper {
             }
         }
 
+        string[] playlistArray = playlist.split(",");
+
         GtkClutter.init (ref args);
         Gtk.init (ref args);
         Gst.init (ref args);
@@ -90,17 +108,32 @@ namespace Wallpaper {
         var screen = Gdk.Screen.get_default ();
         int monitorCount = screen.get_n_monitors();
 
+        fileName = playlistArray[0];
+
+        if (useStaticBackground) {
+            if (playlistArray.length == 0) {
+                makeStaticBackgrounds(fileName, ffmpegSeek, 0);
+            }
+            else {
+                for(int i = 0; i < playlistArray.length; i++)
+                    makeStaticBackgrounds(playlistArray[i], ffmpegSeek, i);
+            }
+
+        }
         
+
         if(monitors.length == 0) {
             backgroundWindows = new BackgroundWindow[monitorCount];
-            for (int i = 0; i < monitorCount; ++i)
-                backgroundWindows[i] = new BackgroundWindow(i, fileName, volume);
+            for (int i = 0; i < monitorCount; ++i) {
+                    backgroundWindows[i] = new BackgroundWindow(i, fileName, volume);
+            }
         }
 
         else {
             backgroundWindows = new BackgroundWindow[monitors.length];
-            for(int i = 0; i < monitors.length; i++)
-                backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], fileName, volume);
+            for(int i = 0; i < monitors.length; i++) {
+                    backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], fileName, volume);
+            }
         }
 
 
@@ -113,38 +146,84 @@ namespace Wallpaper {
         for (int i = 0; i < backgroundWindows.length; ++i)
             backgroundWindows[i].show_all();
 
-        if (useStaticBackground)
-            setStaticBackground(fileName, ffmpegSeek);
+        uint timerID;
+        if (playlistArray.length > 1)
+            timerID = Timeout.add (interval, changeWallpaper);
+
+        if (useStaticBackground) {
+            if (playlistArray.length == 0)
+                setStaticBackground(0);
+            else if(randomOrder)
+                changeWallpaper();
+            else
+                setStaticBackground(0);
+        }
 
         Clutter.main();
 
 
     }
 
-    public static void setStaticBackground(string fileName, string ffmpegSeek) {
+    public bool changeWallpaper () {
+        string[] playlistArray = playlist.split(",");
+        if (playlistArray.length < 2)
+            return true;
+
+        if (!randomOrder) {
+            currentPos++;
+            if (currentPos == playlistArray.length)
+                currentPos = 0;
+
+        }
+        else {
+            int oldPos = currentPos;
+            while (oldPos == currentPos)
+            {
+                currentPos = Random.int_range(0, playlistArray.length);
+            }
+        }
+
+        for (int i = 0; i < backgroundWindows.length; i++)
+            backgroundWindows[i].setVideoWallpaper(playlistArray[currentPos], 0);
+
+        setStaticBackground(currentPos);
+
+        return true;
+    }
+
+    public static void makeStaticBackgrounds(string fileName, string ffmpegSeek, int number) {
         string ls_stdout;
         string ls_stderr;
         int ls_status;
         try {
-            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 /tmp/static-wallpaper.png";
+            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 /tmp/static-wallpaper" + number.to_string() + ".png";
             if(debug) print(ffmpegCommand + "\n");
             Process.spawn_command_line_sync (ffmpegCommand, out ls_stdout, out ls_stderr, out ls_status);
 
-            string setBackgroundCommand = "gsettings set org.gnome.desktop.background picture-uri file:///tmp/static-wallpaper.png";
-            Process.spawn_command_line_sync (setBackgroundCommand, out ls_stdout, out ls_stderr, out ls_status);
-
-            // Output: <File list>
             if(debug) print ("stdout:\n");
-            // Output: ````
             if(debug) print (ls_stdout);
             if(debug) print ("stderr:\n");
             if(debug) print (ls_stderr);
-            // Output: ``0``
             if(debug) print ("Status: %d\n", ls_status);
 
+        } catch (SpawnError e) {
+            print ("Error: %s\n", e.message);
+        }
+    }
 
-
-
+    public static void setStaticBackground(int number) {
+        string ls_stdout;
+        string ls_stderr;
+        int ls_status;
+        try {
+            string setBackgroundCommand = "gsettings set org.gnome.desktop.background picture-uri file:///tmp/static-wallpaper" + number.to_string() + ".png";
+            if(debug) print(setBackgroundCommand);
+            Process.spawn_command_line_sync (setBackgroundCommand, out ls_stdout, out ls_stderr, out ls_status);
+            if(debug) print ("stdout:\n");
+            if(debug) print (ls_stdout);
+            if(debug) print ("stderr:\n");
+            if(debug) print (ls_stderr);
+            if(debug) print ("Status: %d\n", ls_status);
         } catch (SpawnError e) {
             print ("Error: %s\n", e.message);
         }
@@ -158,6 +237,9 @@ namespace Wallpaper {
         print(" -v\tSet volume. (eg. -v 0.2) Default: 0\n");
         print(" -s\tSet the static background to a frame from the video. (Requires ffmpeg)\n");
         print(" -t\tTime in the video the static background is taken from. (eg. -t 00:00:05) Default: 00:00:00\n");
+        print(" -p\tPlaylist of videos. (eg. -p \"video1.mp4,video2.mp4,video3.mp4\")\n");
+        print(" -i\tInterval in seconds between backgrounds. (eg. -i 900) Default: 600\n");
+        print(" -r\tShow backgrounds in a random order.\n");
 
         Process.exit(0);
     }

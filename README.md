@@ -18,6 +18,9 @@ Options:
  -v	Set volume. (eg. -v 0.2) Default: 0
  -s	Set the static background to a frame from the video. (Requires ffmpeg)
  -t	Time in the video the static background is taken from. (eg. -t 00:00:05) Default: 00:00:00
+ -p	Playlist of videos. (eg. -p "video1.mp4,video2.mp4,video3.mp4")
+ -i	Interval in seconds between backgrounds. (eg. -i 900) Default: 600
+ -r	Show backgrounds in a random order.
 ```
 
 Play and loop the video `FILE` on your desktop.
