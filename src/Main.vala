@@ -22,6 +22,7 @@ namespace Wallpaper {
     int currentPos = 0;
     unowned string playlist = "";
     bool useStaticBackground = false;
+    unowned string staticLocation = "/tmp";
 
     BackgroundWindow[] backgroundWindows;
 
@@ -108,7 +109,8 @@ namespace Wallpaper {
         var screen = Gdk.Screen.get_default ();
         int monitorCount = screen.get_n_monitors();
 
-        fileName = playlistArray[0];
+        if (playlistArray.length > 0)
+            fileName = playlistArray[0];
 
         if (useStaticBackground) {
             if (playlistArray.length == 0) {
@@ -197,7 +199,7 @@ namespace Wallpaper {
         string ls_stderr;
         int ls_status;
         try {
-            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 /tmp/static-wallpaper" + number.to_string() + ".png";
+            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 " + staticLocation + "/static-wallpaper" + number.to_string() + ".png";
             if(debug) print(ffmpegCommand + "\n");
             Process.spawn_command_line_sync (ffmpegCommand, out ls_stdout, out ls_stderr, out ls_status);
 
@@ -217,7 +219,7 @@ namespace Wallpaper {
         string ls_stderr;
         int ls_status;
         try {
-            string setBackgroundCommand = "gsettings set org.gnome.desktop.background picture-uri file:///tmp/static-wallpaper" + number.to_string() + ".png";
+            string setBackgroundCommand = "gsettings set org.gnome.desktop.background picture-uri file://" + staticLocation + "/static-wallpaper" + number.to_string() + ".png";
             if(debug) print(setBackgroundCommand + "\n");
             Process.spawn_command_line_sync (setBackgroundCommand, out ls_stdout, out ls_stderr, out ls_status);
             if(debug) print ("stdout:\n");
