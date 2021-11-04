@@ -1,11 +1,11 @@
 
 # What is this?
 
-This is a fork of [Ninlives/animated-wallpaper](https://github.com/Ninlives/animated-wallpaper) with the option to select which monitor to display the video on.
-
-I want to have animated wallpaper on Gnome3, but there is no official support and I didn't find a good solution. [Komorebi](https://github.com/cheesecakeufo/komorebi) can create a dynamic desktop using a video but its functionality is bloated to me, so I recreate some of its core function into this small utility.
-
-
+This is a fork of [Ninlives/animated-wallpaper](https://github.com/Ninlives/animated-wallpaper) with the options to:
+1. Select which monitors to display the video on.
+2. Set the volume of the videos.
+3. Generate a static background and set it for use where the video can't play.
+4. Set a playlist of videos that automatically change over time.  
 
 # Usage
 
@@ -25,8 +25,6 @@ Options:
  -c	Don't generate static backgrounds. Make sure -l is set to a non-volatile location.
  -g	Only generate static backgrounds.
 ```
-
-Play and loop the video `FILE` on your desktop.
 
 # Build && Install
 
@@ -48,7 +46,7 @@ nix-env -i -f https://github.com/DanielHands008/animated-wallpaper/archive/maste
 
 # Note
 
-- Will increase your CPU usage and lower your battery life
+- Will increase your CPU and RAM usage and lower your battery life
 
 ## Others
 
