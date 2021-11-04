@@ -23,6 +23,7 @@ namespace Wallpaper {
     unowned string playlist = "";
     bool useStaticBackground = false;
     unowned string staticLocation = "/tmp";
+    bool generateStaticBackgrounds = true;
 
     BackgroundWindow[] backgroundWindows;
 
@@ -33,6 +34,7 @@ namespace Wallpaper {
         double volume = 0;
         string ffmpegSeek = "00:00:00";
         int interval = 600000;
+        bool onlyGenerateStaticBackgrounds = false;
 
         if (args.length < 2)
             showHelp();
@@ -82,12 +84,25 @@ namespace Wallpaper {
                     case 'r':
                         randomOrder = true;
                         break;
+                    case 'l':
+                        if (args.length > i){
+                            staticLocation = args[i + 1];
+                        }
+                        break;
+                    case 'c':
+                        generateStaticBackgrounds = false;
+                        break;
+                    case 'g':
+                        onlyGenerateStaticBackgrounds = true;
+                        useStaticBackground = true;
+                        break;
                     case 'h':
                     default:
                         showHelp();
                         break;
                 }
             }
+
             if (i == args.length - 1 && playlist == "") {
                 File file = File.new_for_path (args[i]);
                 if (file.query_exists()) {
@@ -102,17 +117,10 @@ namespace Wallpaper {
 
         string[] playlistArray = playlist.split(",");
 
-        GtkClutter.init (ref args);
-        Gtk.init (ref args);
-        Gst.init (ref args);
-
-        var screen = Gdk.Screen.get_default ();
-        int monitorCount = screen.get_n_monitors();
-
         if (playlistArray.length > 0)
             fileName = playlistArray[0];
 
-        if (useStaticBackground) {
+        if (useStaticBackground && generateStaticBackgrounds) {
             if (playlistArray.length == 0) {
                 makeStaticBackgrounds(fileName, ffmpegSeek, 0);
             }
@@ -122,7 +130,16 @@ namespace Wallpaper {
             }
 
         }
+
+        if(onlyGenerateStaticBackgrounds)
+            Process.exit(0);
         
+        GtkClutter.init (ref args);
+        Gtk.init (ref args);
+        Gst.init (ref args);
+
+        var screen = Gdk.Screen.get_default ();
+        int monitorCount = screen.get_n_monitors();
 
         if(monitors.length == 0) {
             backgroundWindows = new BackgroundWindow[monitorCount];
@@ -243,6 +260,9 @@ namespace Wallpaper {
         print(" -p\tPlaylist of videos. (eg. -p \"video1.mp4,video2.mp4,video3.mp4\")\n");
         print(" -i\tInterval in seconds between backgrounds. (eg. -i 900) Default: 600\n");
         print(" -r\tShow backgrounds in a random order.\n");
+        print(" -l\tSet the location to for static backgrounds. (eg. -l /tmp/animated-backgrounds) default: /tmp\n");
+        print(" -c\tDon't generate static backgrounds. Make sure -l is set to a non-volatile location.\n");
+        print(" -g\tOnly generate static backgrounds.\n");
 
         Process.exit(0);
     }

@@ -21,6 +21,9 @@ Options:
  -p	Playlist of videos. (eg. -p "video1.mp4,video2.mp4,video3.mp4")
  -i	Interval in seconds between backgrounds. (eg. -i 900) Default: 600
  -r	Show backgrounds in a random order.
+ -l	Set the location to for static backgrounds. (eg. -l /tmp/animated-backgrounds) default: /tmp
+ -c	Don't generate static backgrounds. Make sure -l is set to a non-volatile location.
+ -g	Only generate static backgrounds.
 ```
 
 Play and loop the video `FILE` on your desktop.
