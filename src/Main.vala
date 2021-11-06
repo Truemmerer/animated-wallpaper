@@ -122,11 +122,11 @@ namespace Wallpaper {
 
         if (useStaticBackground && generateStaticBackgrounds) {
             if (playlistArray.length == 0) {
-                makeStaticBackgrounds(fileName, ffmpegSeek, 0);
+                makeStaticBackgrounds(fileName, ffmpegSeek);
             }
             else {
                 for(int i = 0; i < playlistArray.length; i++)
-                    makeStaticBackgrounds(playlistArray[i], ffmpegSeek, i);
+                    makeStaticBackgrounds(playlistArray[i], ffmpegSeek);
             }
 
         }
@@ -171,11 +171,11 @@ namespace Wallpaper {
 
         if (useStaticBackground) {
             if (playlistArray.length == 0)
-                setStaticBackground(0);
+                setStaticBackground(playlistArray[0]);
             else if(randomOrder)
                 changeWallpaper();
             else
-                setStaticBackground(0);
+                setStaticBackground(playlistArray[0]);
         }
 
         Clutter.main();
@@ -206,17 +206,19 @@ namespace Wallpaper {
         for (int i = 0; i < backgroundWindows.length; i++)
             backgroundWindows[i].setVideoWallpaper(playlistArray[currentPos], 0);
         if (useStaticBackground)
-            setStaticBackground(currentPos);
+            setStaticBackground(playlistArray[currentPos]);
 
         return true;
     }
 
-    public static void makeStaticBackgrounds(string fileName, string ffmpegSeek, int number) {
+    public static void makeStaticBackgrounds(string fileName, string ffmpegSeek) {
+        string[] fileParts = fileName.split("/");
         string ls_stdout;
         string ls_stderr;
         int ls_status;
         try {
-            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 " + staticLocation + "/static-wallpaper" + number.to_string() + ".png";
+            // string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 " + staticLocation + "/static-wallpaper" + number.to_string() + ".png";
+            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 " + staticLocation + "/" + fileParts[fileParts.length - 1] + ".png";
             if(debug) print(ffmpegCommand + "\n");
             Process.spawn_command_line_sync (ffmpegCommand, out ls_stdout, out ls_stderr, out ls_status);
 
@@ -231,12 +233,13 @@ namespace Wallpaper {
         }
     }
 
-    public static void setStaticBackground(int number) {
+    public static void setStaticBackground(string fileName) {
+        string[] fileParts = fileName.split("/");
         string ls_stdout;
         string ls_stderr;
         int ls_status;
         try {
-            string setBackgroundCommand = "gsettings set org.gnome.desktop.background picture-uri file://" + staticLocation + "/static-wallpaper" + number.to_string() + ".png";
+            string setBackgroundCommand = "gsettings set org.gnome.desktop.background picture-uri file://" + staticLocation + "/" + fileParts[fileParts.length - 1] + ".png";
             if(debug) print(setBackgroundCommand + "\n");
             Process.spawn_command_line_sync (setBackgroundCommand, out ls_stdout, out ls_stderr, out ls_status);
             if(debug) print ("stdout:\n");
