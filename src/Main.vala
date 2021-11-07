@@ -120,15 +120,15 @@ namespace Wallpaper {
         string[] playlistArray = playlist.split(",");
 
         if (useStaticBackground && generateStaticBackgrounds) {
-            print("Use static\n");
+            if(debug) print("Use static\n");
             for(int i = 0; i < playlistArray.length; i++) {
 
                 string[] fileParts = playlistArray[i].split("/");
                 File file = File.new_for_path (staticLocation + "/" + fileParts[fileParts.length - 1] + ".png");
                 bool exists = file.query_exists ();
 
-                print("File: " + playlistArray[i] + "\n");
-                print("Exists: " + exists.to_string() + "\n");
+                if(debug) print("File: " + playlistArray[i] + "\n");
+                if(debug) print("Exists: " + exists.to_string() + "\n");
 
                 if(!exists || forceGenerateStaticBackgrounds)
                     makeStaticBackgrounds(playlistArray[i], ffmpegSeek);

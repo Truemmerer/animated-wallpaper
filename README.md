@@ -24,6 +24,7 @@ Options:
  -l	Set the location to for static backgrounds. (eg. -l /tmp/animated-backgrounds) default: /tmp
  -c	Don't generate static backgrounds. Make sure -l is set to a non-volatile location.
  -g	Only generate static backgrounds.
+ -f	Generate static backgrounds even if file exists.
 ```
 
 # Build && Install
