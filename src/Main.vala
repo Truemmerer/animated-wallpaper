@@ -24,13 +24,12 @@ namespace Wallpaper {
     bool useStaticBackground = false;
     unowned string staticLocation = "/tmp";
     bool generateStaticBackgrounds = true;
-
+    bool forceGenerateStaticBackgrounds = false;
     BackgroundWindow[] backgroundWindows;
 
     public static void main (string [] args) {
 
         int[] monitors = new int[0];
-        string fileName = "";
         double volume = 0;
         string ffmpegSeek = "00:00:00";
         int interval = 600000;
@@ -96,6 +95,9 @@ namespace Wallpaper {
                         onlyGenerateStaticBackgrounds = true;
                         useStaticBackground = true;
                         break;
+                    case 'f':
+                        forceGenerateStaticBackgrounds = true;
+                        break;
                     case 'h':
                     default:
                         showHelp();
@@ -106,7 +108,7 @@ namespace Wallpaper {
             if (i == args.length - 1 && playlist == "") {
                 File file = File.new_for_path (args[i]);
                 if (file.query_exists()) {
-                    fileName = args[i];
+                    playlist = args[i];
                 }
                 else {
                     print("Error: file does not exist.\n");
@@ -117,15 +119,18 @@ namespace Wallpaper {
 
         string[] playlistArray = playlist.split(",");
 
-        if (playlistArray.length > 0)
-            fileName = playlistArray[0];
-
         if (useStaticBackground && generateStaticBackgrounds) {
-            if (playlistArray.length == 0) {
-                makeStaticBackgrounds(fileName, ffmpegSeek);
-            }
-            else {
-                for(int i = 0; i < playlistArray.length; i++)
+            print("Use static\n");
+            for(int i = 0; i < playlistArray.length; i++) {
+
+                string[] fileParts = playlistArray[i].split("/");
+                File file = File.new_for_path (staticLocation + "/" + fileParts[fileParts.length - 1] + ".png");
+                bool exists = file.query_exists ();
+
+                print("File: " + playlistArray[i] + "\n");
+                print("Exists: " + exists.to_string() + "\n");
+
+                if(!exists || forceGenerateStaticBackgrounds)
                     makeStaticBackgrounds(playlistArray[i], ffmpegSeek);
             }
 
@@ -144,14 +149,14 @@ namespace Wallpaper {
         if(monitors.length == 0) {
             backgroundWindows = new BackgroundWindow[monitorCount];
             for (int i = 0; i < monitorCount; ++i) {
-                    backgroundWindows[i] = new BackgroundWindow(i, fileName, volume);
+                    backgroundWindows[i] = new BackgroundWindow(i, playlistArray[0], volume);
             }
         }
 
         else {
             backgroundWindows = new BackgroundWindow[monitors.length];
             for(int i = 0; i < monitors.length; i++) {
-                    backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], fileName, volume);
+                    backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], playlistArray[0], volume);
             }
         }
 
@@ -217,7 +222,6 @@ namespace Wallpaper {
         string ls_stderr;
         int ls_status;
         try {
-            // string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 " + staticLocation + "/static-wallpaper" + number.to_string() + ".png";
             string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 " + staticLocation + "/" + fileParts[fileParts.length - 1] + ".png";
             if(debug) print(ffmpegCommand + "\n");
             Process.spawn_command_line_sync (ffmpegCommand, out ls_stdout, out ls_stderr, out ls_status);
@@ -266,6 +270,7 @@ namespace Wallpaper {
         print(" -l\tSet the location to for static backgrounds. (eg. -l /tmp/animated-backgrounds) default: /tmp\n");
         print(" -c\tDon't generate static backgrounds. Make sure -l is set to a non-volatile location.\n");
         print(" -g\tOnly generate static backgrounds.\n");
+        print(" -f\tGenerate static backgrounds even if file exists.\n");
 
         Process.exit(0);
     }
