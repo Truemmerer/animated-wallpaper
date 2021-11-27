@@ -149,14 +149,18 @@ namespace Wallpaper {
         if(monitors.length == 0) {
             backgroundWindows = new BackgroundWindow[monitorCount];
             for (int i = 0; i < monitorCount; ++i) {
-                    backgroundWindows[i] = new BackgroundWindow(i, playlistArray[0], volume);
+                    double monitorVolume = 0;
+                    if (i == 0) monitorVolume = volume;
+                    backgroundWindows[i] = new BackgroundWindow(i, playlistArray[0], monitorVolume);
             }
         }
 
         else {
             backgroundWindows = new BackgroundWindow[monitors.length];
             for(int i = 0; i < monitors.length; i++) {
-                    backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], playlistArray[0], volume);
+                    double monitorVolume = 0;
+                    if (i == 0) monitorVolume = volume;
+                    backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], playlistArray[0], monitorVolume);
             }
         }
 
