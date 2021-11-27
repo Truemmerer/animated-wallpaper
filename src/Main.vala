@@ -26,14 +26,52 @@ namespace Wallpaper {
     bool generateStaticBackgrounds = true;
     bool forceGenerateStaticBackgrounds = false;
     BackgroundWindow[] backgroundWindows;
+    double volume = 0;
+    unowned string ffmpegSeek = "00:00:00";
+    int interval = 600000;
+    bool onlyGenerateStaticBackgrounds = false;
+
+    private static bool checkValue(string [] args, int position, string valueType) {
+        if (args.length > position) {
+            if (valueType == "string")
+                return true;
+            else if (valueType == "int" || valueType == "double") {
+                int valueTmp = int.parse(args[position + 1]);
+                if(valueTmp.to_string() == args[position + 1])
+                    return true;
+                if (valueType == "double" && checkValueDouble(args, position))
+                    return true;
+            }
+            else if (valueType == "folder") {
+
+            }
+        }
+        print ("Error: invalid value for " + args[position] + "\n");
+        Process.exit(0);
+        return false;
+    }
+    private static bool checkValueDouble (string [] args, int position) {
+        double doubleTmp;
+        if (!double.try_parse (args[position + 1], out doubleTmp)) {
+            print ("Error: invalid value for " + args[position] + "\n");
+            Process.exit(0);
+            return false;
+        }
+        return true;
+    }
+    private static bool checkFileExists(string path) {
+        File file = File.new_for_path (path);
+        if (file.query_exists())
+            return true;
+        else {
+            print("Error: file does not exist. " + path + "\n");
+            return false;
+        }
+    }
 
     public static void main (string [] args) {
 
         int[] monitors = new int[0];
-        double volume = 0;
-        string ffmpegSeek = "00:00:00";
-        int interval = 600000;
-        bool onlyGenerateStaticBackgrounds = false;
 
         if (args.length < 2)
             showHelp();
@@ -46,7 +84,7 @@ namespace Wallpaper {
                         debug = true;
                         break;
                     case 'm':
-                        if (args.length > i){
+                        if (checkValue(args, i, "string")) {
                             if (args[i + 1] == "all")
                                 break;
                             string[] tmp = args[i + 1].split(",");
@@ -57,7 +95,7 @@ namespace Wallpaper {
                         }
                         break;
                     case 'v':
-                        if (args.length > i){
+                        if (checkValue(args, i, "double")) {
                             volume = double.parse(args[i + 1]);
                             i++;
                         }
@@ -66,17 +104,17 @@ namespace Wallpaper {
                         useStaticBackground = true;
                         break;
                     case 't':
-                        if (args.length > i){
+                        if (checkValue(args, i, "string")) {
                             ffmpegSeek = args[i + 1];
                         }
                         break;
                     case 'p':
-                        if (args.length > i){
+                        if (args.length > i) {
                             playlist = args[i + 1];
                         }
                         break;
                     case 'i':
-                        if (args.length > i){
+                        if (checkValue(args, i, "int")) {
                             interval = int.parse(args[i + 1]) * 1000;
                         }
                         break;
@@ -84,7 +122,7 @@ namespace Wallpaper {
                         randomOrder = true;
                         break;
                     case 'l':
-                        if (args.length > i){
+                        if (checkValue(args, i, "folder")) {
                             staticLocation = args[i + 1];
                         }
                         break;
@@ -106,14 +144,10 @@ namespace Wallpaper {
             }
 
             if (i == args.length - 1 && playlist == "") {
-                File file = File.new_for_path (args[i]);
-                if (file.query_exists()) {
+                if (checkFileExists(args[i]))
                     playlist = args[i];
-                }
-                else {
-                    print("Error: file does not exist.\n");
+                else
                     Process.exit(0);
-                }
             }
         }
 
@@ -149,14 +183,18 @@ namespace Wallpaper {
         if(monitors.length == 0) {
             backgroundWindows = new BackgroundWindow[monitorCount];
             for (int i = 0; i < monitorCount; ++i) {
-                    backgroundWindows[i] = new BackgroundWindow(i, playlistArray[0], volume);
+                    double monitorVolume = 0;
+                    if (i == 0) monitorVolume = volume;
+                    backgroundWindows[i] = new BackgroundWindow(i, playlistArray[0], monitorVolume);
             }
         }
 
         else {
             backgroundWindows = new BackgroundWindow[monitors.length];
             for(int i = 0; i < monitors.length; i++) {
-                    backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], playlistArray[0], volume);
+                    double monitorVolume = 0;
+                    if (i == 0) monitorVolume = volume;
+                    backgroundWindows[monitors[i]] = new BackgroundWindow(monitors[i], playlistArray[0], monitorVolume);
             }
         }
 
