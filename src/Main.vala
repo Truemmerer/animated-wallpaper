@@ -39,7 +39,7 @@ namespace Wallpaper {
                 int valueTmp = int.parse(args[position + 1]);
                 if(valueTmp.to_string() == args[position + 1])
                     return true;
-                if (valueType == "double" && checkValueDouble(args, position))
+                if (valueType == "double" && double.try_parse (args[position + 1]))
                     return true;
             }
             else if (valueType == "folder") {
@@ -53,9 +53,6 @@ namespace Wallpaper {
         print ("Error: invalid value for " + args[position] + "\n");
         Process.exit(0);
         return false;
-    }
-    private static bool checkValueDouble (string [] args, int position) {
-        return double.try_parse (args[position + 1]);
     }
     private static bool checkFileExists(string path) {
         File file = File.new_for_path (path);
@@ -73,6 +70,10 @@ namespace Wallpaper {
 
         if (args.length < 2)
             showHelp();
+
+        string tmpPlaylist = "";
+
+        bool invalidVideoFile = false;
 
         for (int i = 1; i < args.length; i++) {
             if (args[i][0] == '-' && args[i].length == 2) {
@@ -104,16 +105,13 @@ namespace Wallpaper {
                     case 't':
                         if (checkValue(args, i, "string")) {
                             ffmpegSeek = args[i + 1];
-                        }
-                        break;
-                    case 'p':
-                        if (args.length > i) {
-                            playlist = args[i + 1];
+                            i++;
                         }
                         break;
                     case 'i':
                         if (checkValue(args, i, "int")) {
                             interval = int.parse(args[i + 1]) * 1000;
+                            i++;
                         }
                         break;
                     case 'r':
@@ -122,10 +120,8 @@ namespace Wallpaper {
                     case 'l':
                         if (checkValue(args, i, "folder")) {
                             staticLocation = args[i + 1];
+                            i++;
                         }
-                        break;
-                    case 'c':
-                        generateStaticBackgrounds = false;
                         break;
                     case 'g':
                         onlyGenerateStaticBackgrounds = true;
@@ -140,18 +136,32 @@ namespace Wallpaper {
                         break;
                 }
             }
-
-            if (i == args.length - 1 && playlist == "") {
+            else {
                 if (checkFileExists(args[i]))
-                    playlist = args[i];
+                    tmpPlaylist = tmpPlaylist + args[i].to_string() + "\n";
                 else
-                    Process.exit(0);
+                    invalidVideoFile = true;
             }
+
         }
 
-        string[] playlistArray = playlist.split(",");
+        if(invalidVideoFile)
+            Process.exit(0);
 
-        if (useStaticBackground && generateStaticBackgrounds) {
+        while (tmpPlaylist[tmpPlaylist.length - 1] == '\n' || tmpPlaylist[tmpPlaylist.length - 1] == ' ') {
+            tmpPlaylist = tmpPlaylist.substring(0, tmpPlaylist.length - 1);
+        }
+        playlist = tmpPlaylist;
+
+        if (playlist.length == 0) {
+            print("Error: no video files. \n");
+            Process.exit(0);
+        }
+
+
+        string[] playlistArray = playlist.split("\n");
+
+        if (useStaticBackground) {
             if(debug) print("Use static\n");
             for(int i = 0; i < playlistArray.length; i++) {
 
@@ -162,8 +172,15 @@ namespace Wallpaper {
                 if(debug) print("File: " + playlistArray[i] + "\n");
                 if(debug) print("Exists: " + exists.to_string() + "\n");
 
-                if(!exists || forceGenerateStaticBackgrounds)
+                if(!exists || forceGenerateStaticBackgrounds) {
+                    if (i == 0)
+                        print("Generating static backgrounds.");
+                    else
+                        print(".");
                     makeStaticBackgrounds(playlistArray[i], ffmpegSeek);
+                    if (i == playlistArray.length - 1)
+                        print("\n");
+                }
             }
 
         }
@@ -225,7 +242,7 @@ namespace Wallpaper {
     }
 
     public bool changeWallpaper () {
-        string[] playlistArray = playlist.split(",");
+        string[] playlistArray = playlist.split("\n");
         if (playlistArray.length < 2)
             return true;
 
@@ -244,7 +261,9 @@ namespace Wallpaper {
 
         if(debug) print ("Set background: " + currentPos.to_string() + "\n");
 
-        for (int i = 0; i < backgroundWindows.length; i++)
+        if(backgroundWindows.length > 0)
+            backgroundWindows[0].setVideoWallpaper(playlistArray[currentPos], volume);
+        for (int i = 1; i < backgroundWindows.length; i++)
             backgroundWindows[i].setVideoWallpaper(playlistArray[currentPos], 0);
         if (useStaticBackground)
             setStaticBackground(playlistArray[currentPos]);
@@ -258,7 +277,7 @@ namespace Wallpaper {
         string ls_stderr;
         int ls_status;
         try {
-            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 " + staticLocation + "/" + fileParts[fileParts.length - 1] + ".png";
+            string ffmpegCommand = "ffmpeg -y -i \"" + fileName + "\" -ss " + ffmpegSeek + " -frames:v 1 \"" + staticLocation + "/" + fileParts[fileParts.length - 1] + ".png\"";
             if(debug) print(ffmpegCommand + "\n");
             Process.spawn_command_line_sync (ffmpegCommand, out ls_stdout, out ls_stderr, out ls_status);
 
@@ -293,18 +312,16 @@ namespace Wallpaper {
     }
 
     public static void showHelp() {
-        print("Usage:\n\tanimated-wallpaper options [FILE]\n");
+        print("Usage:\n\tanimated-wallpaper options [FILE] [FILE] [File]\n");
         print("Options:\n");
         print(" -d\tEnable debug mode.\n");
         print(" -m\tSelect monitors. (eg. -n 0,2) Default: all\n");
         print(" -v\tSet volume. (eg. -v 0.2) Default: 0\n");
         print(" -s\tSet the static background to a frame from the video. (Requires ffmpeg)\n");
         print(" -t\tTime in the video the static background is taken from. (eg. -t 00:00:05) Default: 00:00:00\n");
-        print(" -p\tPlaylist of videos. (eg. -p \"video1.mp4,video2.mp4,video3.mp4\")\n");
         print(" -i\tInterval in seconds between backgrounds. (eg. -i 900) Default: 600\n");
         print(" -r\tShow backgrounds in a random order.\n");
-        print(" -l\tSet the location to for static backgrounds. (eg. -l /tmp/animated-backgrounds) default: /tmp\n");
-        print(" -c\tDon't generate static backgrounds. Make sure -l is set to a non-volatile location.\n");
+        print(" -l\tSet the location for static backgrounds. (eg. -l /tmp/animated-backgrounds) default: /tmp\n");
         print(" -g\tOnly generate static backgrounds.\n");
         print(" -f\tGenerate static backgrounds even if file exists.\n");
 

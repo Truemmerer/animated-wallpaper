@@ -11,18 +11,16 @@ This is a fork of [Ninlives/animated-wallpaper](https://github.com/Ninlives/anim
 
 ```shell
 Usage:
-	animated-wallpaper options [FILE]
+	animated-wallpaper options [FILE] [FILE] [File]
 Options:
  -d	Enable debug mode.
  -m	Select monitors. (eg. -n 0,2) Default: all
  -v	Set volume. (eg. -v 0.2) Default: 0
  -s	Set the static background to a frame from the video. (Requires ffmpeg)
  -t	Time in the video the static background is taken from. (eg. -t 00:00:05) Default: 00:00:00
- -p	Playlist of videos. (eg. -p "video1.mp4,video2.mp4,video3.mp4")
  -i	Interval in seconds between backgrounds. (eg. -i 900) Default: 600
  -r	Show backgrounds in a random order.
- -l	Set the location to for static backgrounds. (eg. -l /tmp/animated-backgrounds) default: /tmp
- -c	Don't generate static backgrounds. Make sure -l is set to a non-volatile location.
+ -l	Set the location for static backgrounds. (eg. -l /tmp/animated-backgrounds) default: /tmp
  -g	Only generate static backgrounds.
  -f	Generate static backgrounds even if file exists.
 ```
