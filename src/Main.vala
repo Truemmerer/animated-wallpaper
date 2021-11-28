@@ -43,7 +43,11 @@ namespace Wallpaper {
                     return true;
             }
             else if (valueType == "folder") {
-
+                if (GLib.FileUtils.test(args[position + 1], GLib.FileTest.IS_DIR))
+                    return true;
+                else {
+                    print ("Error: folder does not exist: " + args[position + 1] + "\n");
+                }
             }
         }
         print ("Error: invalid value for " + args[position] + "\n");
@@ -51,20 +55,14 @@ namespace Wallpaper {
         return false;
     }
     private static bool checkValueDouble (string [] args, int position) {
-        double doubleTmp;
-        if (!double.try_parse (args[position + 1], out doubleTmp)) {
-            print ("Error: invalid value for " + args[position] + "\n");
-            Process.exit(0);
-            return false;
-        }
-        return true;
+        return double.try_parse (args[position + 1]);
     }
     private static bool checkFileExists(string path) {
         File file = File.new_for_path (path);
         if (file.query_exists())
             return true;
         else {
-            print("Error: file does not exist. " + path + "\n");
+            print("Error: file does not exist: " + path + "\n");
             return false;
         }
     }
