@@ -21,112 +21,114 @@ using Gdk;
 using Gst;
 
 namespace Playable {
-    int screenWidth;
-    int screenHeight;
+int screenWidth;
+int screenHeight;
 
-	public class BackgroundWindow : Gtk.Window {
+public class BackgroundWindow : Gtk.Window {
 
-		GtkClutter.Embed embed;
+GtkClutter.Embed embed;
 
-		// Main container
-		public Clutter.Actor mainActor { get; private set; }
+// Main container
+public Clutter.Actor mainActor { get; private set; }
 
-		Clutter.Actor wallpaperActor = new Clutter.Actor();
+Clutter.Actor wallpaperActor = new Clutter.Actor();
 
-		public BackgroundWindow (int monitorIndex, string fileName, double volume) {
+public BackgroundWindow (int monitorIndex, string fileName, double volume) {
 
-			title = "Desktop";
+	title = "Desktop";
 
-			// Get current monitor size
-			getMonitorSize(monitorIndex);
+	// Get current monitor size
+	getMonitorSize(monitorIndex);
 
-            embed = new GtkClutter.Embed() {width_request = screenWidth, height_request = screenHeight};
-            mainActor = embed.get_stage();
+	embed = new GtkClutter.Embed() {
+		width_request = screenWidth, height_request = screenHeight
+	};
+	mainActor = embed.get_stage();
 
-			// Setup widgets
-			set_size_request(screenWidth, screenHeight);
-			resizable = false;
-			set_type_hint(WindowTypeHint.DESKTOP);
-			set_keep_below(true);
-			app_paintable = false;
-			skip_pager_hint = true;
-			skip_taskbar_hint = true;
-			accept_focus = false;
-			stick ();
-			decorated = false;
-			add_events (EventMask.ENTER_NOTIFY_MASK | EventMask.POINTER_MOTION_MASK | EventMask.SMOOTH_SCROLL_MASK);
-			//Gtk.drag_dest_set (this, Gtk.DestDefaults.MOTION | Gtk.DestDefaults.DROP, targets, Gdk.DragAction.MOVE);
+	// Setup widgets
+	set_size_request(screenWidth, screenHeight);
+	resizable = false;
+	set_type_hint(WindowTypeHint.DESKTOP);
+	set_keep_below(true);
+	app_paintable = false;
+	skip_pager_hint = true;
+	skip_taskbar_hint = true;
+	accept_focus = false;
+	stick ();
+	decorated = false;
+	add_events (EventMask.ENTER_NOTIFY_MASK | EventMask.POINTER_MOTION_MASK | EventMask.SMOOTH_SCROLL_MASK);
+	//Gtk.drag_dest_set (this, Gtk.DestDefaults.MOTION | Gtk.DestDefaults.DROP, targets, Gdk.DragAction.MOVE);
 
-			mainActor.background_color = Clutter.Color.from_string("black");
+	mainActor.background_color = Clutter.Color.from_string("black");
 
-			wallpaperActor.set_size(screenWidth, screenHeight);
-			wallpaperActor.set_pivot_point (0.5f, 0.5f);
+	wallpaperActor.set_size(screenWidth, screenHeight);
+	wallpaperActor.set_pivot_point (0.5f, 0.5f);
 
-            setVideoWallpaper(fileName, volume);
+	setVideoWallpaper(fileName, volume);
 
-			// Add widgets
-			mainActor.add_child(wallpaperActor);
+	// Add widgets
+	mainActor.add_child(wallpaperActor);
 
-			// add the widgets
-			add(embed);
-		}
+	// add the widgets
+	add(embed);
+}
 
-		void getMonitorSize(int monitorIndex) {
+void getMonitorSize(int monitorIndex) {
 
-			Rectangle rectangle;
-			var screen = Gdk.Screen.get_default ();
+	Rectangle rectangle;
+	var screen = Gdk.Screen.get_default ();
 
-			screen.get_monitor_geometry (monitorIndex, out rectangle);
+	screen.get_monitor_geometry (monitorIndex, out rectangle);
 
-			screenHeight = rectangle.height;
-			screenWidth = rectangle.width;
+	screenHeight = rectangle.height;
+	screenWidth = rectangle.width;
 
-			move(rectangle.x, rectangle.y);
+	move(rectangle.x, rectangle.y);
 
-		}
+}
 
-		ClutterGst.Playback videoPlayback = new ClutterGst.Playback ();
-        ClutterGst.Content  videoContent = new ClutterGst.Content();
+ClutterGst.Playback videoPlayback = new ClutterGst.Playback ();
+ClutterGst.Content videoContent = new ClutterGst.Content();
 
-        public void setVideoWallpaper(string fileName, double volume) {
+public void setVideoWallpaper(string fileName, double volume) {
 
 
-            videoPlayback.set_seek_flags (ClutterGst.SeekFlags.ACCURATE);
+	videoPlayback.set_seek_flags (ClutterGst.SeekFlags.ACCURATE);
 
-            videoContent.player = videoPlayback;
+	videoContent.player = videoPlayback;
 
-            videoPlayback.notify["progress"].connect(() => {
+	videoPlayback.notify["progress"].connect(() => {
 
-                if(videoPlayback.progress >= 1.0) {
-                    videoPlayback.progress = 0.0;
+				if(videoPlayback.progress >= 1.0) {
+					videoPlayback.progress = 0.0;
 					videoPlayback.set_audio_volume(volume);
-                    videoPlayback.playing = true;
-                }
+					videoPlayback.playing = true;
+				}
 
-            });
+			});
 
-            wallpaperActor.scale_y = 1.00f;
-            wallpaperActor.scale_x = 1.00f;   
+	wallpaperActor.scale_y = 1.00f;
+	wallpaperActor.scale_x = 1.00f;
 
-            videoPlayback.set_filename(fileName);
-			videoPlayback.set_audio_volume(volume);
-            videoPlayback.playing = true;
+	videoPlayback.set_filename(fileName);
+	videoPlayback.set_audio_volume(volume);
+	videoPlayback.playing = true;
 
-            wallpaperActor.set_content(videoContent);
+	wallpaperActor.set_content(videoContent);
 
-        }
+}
 
-        // void setImageWallpaper(string fileName) {
-        //     wallpaperActor.scale_y = 1.05f;
-        //     wallpaperActor.scale_x = 1.05f;   
-        //     
-        //     Gtk.Image image = new Gtk.Image.from_file(fileName);
-        //     GtkClutter.Actor actor = new GtkClutter.Actor.with_contents(image);
-        //     actor.set_size(screenWidth, screenHeight);
+// void setImageWallpaper(string fileName) {
+//     wallpaperActor.scale_y = 1.05f;
+//     wallpaperActor.scale_x = 1.05f;
+//
+//     Gtk.Image image = new Gtk.Image.from_file(fileName);
+//     GtkClutter.Actor actor = new GtkClutter.Actor.with_contents(image);
+//     actor.set_size(screenWidth, screenHeight);
 
-        //     wallpaperActor.set_content(null);
-        //     wallpaperActor.add_child(actor);
-        // }
+//     wallpaperActor.set_content(null);
+//     wallpaperActor.add_child(actor);
+// }
 
-	}
+}
 }
